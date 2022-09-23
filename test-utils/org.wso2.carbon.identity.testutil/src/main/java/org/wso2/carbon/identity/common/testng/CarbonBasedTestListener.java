@@ -27,6 +27,7 @@ import org.testng.IMethodInstance;
 import org.testng.ITestClass;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
+import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -175,7 +176,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     }
 
     @Override
-    public void onBeforeClass(ITestClass iTestClass, IMethodInstance iMethodInstance) {
+    public void onBeforeClass(ITestClass iTestClass) {
 
         Class realClass = iTestClass.getRealClass();
         if (annotationPresent(realClass, WithCarbonHome.class)) {
@@ -220,13 +221,18 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
             createKeyStore(realClass, withKeyStore);
         }
-        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(
-                iMethodInstance.getInstance())) {
-            MicroserviceServer microserviceServer = initMicroserviceServer(iMethodInstance.getInstance());
-            scanAndLoadClasses(microserviceServer, realClass, iMethodInstance.getInstance());
+        if (annotationPresent(realClass, WithMicroService.class)) {
+            for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
+                if (!microserviceServerInitialized(iMethod.getInstance())){
+                    MicroserviceServer microserviceServer = initMicroserviceServer(iMethod.getInstance());
+                    scanAndLoadClasses(microserviceServer, realClass, iMethod.getInstance());
+                }
+            }
         }
         Field[] fields = realClass.getDeclaredFields();
-        processFields(fields, iMethodInstance.getInstance());
+        for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
+            processFields(fields, iMethod.getInstance());
+        }
     }
 
     private boolean microserviceServerInitialized(Object instance) {
@@ -440,14 +446,16 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     }
 
     @Override
-    public void onAfterClass(ITestClass iTestClass, IMethodInstance iMethodInstance) {
+    public void onAfterClass(ITestClass iTestClass) {
 
         MockInitialContextFactory.destroy();
-        MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance.getInstance());
-        if (microserviceServer != null) {
-            microserviceServer.stop();
-            microserviceServer.destroy();
-            microserviceServerMap.remove(iMethodInstance.getInstance());
+        for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
+            MicroserviceServer microserviceServer = microserviceServerMap.get(iMethod.getInstance());
+            if (microserviceServer != null) {
+                microserviceServer.stop();
+                microserviceServer.destroy();
+                microserviceServerMap.remove(iMethod.getInstance());
+            }
         }
     }
 
