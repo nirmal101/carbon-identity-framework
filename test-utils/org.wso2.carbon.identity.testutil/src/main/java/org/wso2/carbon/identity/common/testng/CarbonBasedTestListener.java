@@ -222,16 +222,16 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             createKeyStore(realClass, withKeyStore);
         }
         if (annotationPresent(realClass, WithMicroService.class)) {
-            for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
-                if (!microserviceServerInitialized(iMethod.getInstance())){
-                    MicroserviceServer microserviceServer = initMicroserviceServer(iMethod.getInstance());
-                    scanAndLoadClasses(microserviceServer, realClass, iMethod.getInstance());
+            for (Object iMethod : iTestClass.getInstances(false)) {
+                if (!microserviceServerInitialized(iMethod)){
+                    MicroserviceServer microserviceServer = initMicroserviceServer(iMethod);
+                    scanAndLoadClasses(microserviceServer, realClass, iMethod);
                 }
             }
         }
         Field[] fields = realClass.getDeclaredFields();
-        for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
-            processFields(fields, iMethod.getInstance());
+        for (Object iMethod : iTestClass.getInstances(false)) {
+            processFields(fields, iMethod);
         }
     }
 
@@ -449,12 +449,12 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     public void onAfterClass(ITestClass iTestClass) {
 
         MockInitialContextFactory.destroy();
-        for (ITestNGMethod iMethod : iTestClass.getTestMethods()) {
-            MicroserviceServer microserviceServer = microserviceServerMap.get(iMethod.getInstance());
+        for (Object iMethod : iTestClass.getInstances(false)) {
+            MicroserviceServer microserviceServer = microserviceServerMap.get(iMethod);
             if (microserviceServer != null) {
                 microserviceServer.stop();
                 microserviceServer.destroy();
-                microserviceServerMap.remove(iMethod.getInstance());
+                microserviceServerMap.remove(iMethod);
             }
         }
     }
