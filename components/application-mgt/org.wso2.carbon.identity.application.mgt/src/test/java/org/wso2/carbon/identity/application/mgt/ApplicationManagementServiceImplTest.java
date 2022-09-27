@@ -500,6 +500,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(steps.length, 1);
         Assert.assertEquals(steps[0].getStepOrder(), 1);
+        applicationManagementService.deleteApplication(inputSP1.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
     @Test
@@ -703,6 +705,9 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test(dataProvider = "addApplicationDataProvider")
     public void testCreateApplication(Object serviceProvider, String tenantDomain, String username) throws
             IdentityApplicationManagementException {
+        //delete existing application
+        ServiceProvider inputSP = (ServiceProvider) serviceProvider;
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
 
         // Adding application.
         addApplicationConfigurations((ServiceProvider) serviceProvider);
@@ -759,7 +764,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     public void testAddApplicationWithIsManagementApplication(boolean isManagementApp) throws Exception {
 
         ServiceProvider inputSP = new ServiceProvider();
-        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setApplicationName(APPLICATION_NAME_2);
 
         addApplicationConfigurations(inputSP);
         inputSP.setManagementApp(isManagementApp);
