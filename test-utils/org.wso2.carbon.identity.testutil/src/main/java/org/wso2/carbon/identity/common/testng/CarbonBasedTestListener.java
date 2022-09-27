@@ -23,7 +23,6 @@ import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.IClassListener;
-import org.testng.IMethodInstance;
 import org.testng.ITestClass;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
@@ -222,16 +221,16 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             createKeyStore(realClass, withKeyStore);
         }
         if (annotationPresent(realClass, WithMicroService.class)) {
-            for (Object iMethod : iTestClass.getInstances(false)) {
-                if (!microserviceServerInitialized(iMethod)){
-                    MicroserviceServer microserviceServer = initMicroserviceServer(iMethod);
-                    scanAndLoadClasses(microserviceServer, realClass, iMethod);
+            for (Object iMethodInstance : iTestClass.getInstances(false)) {
+                if (!microserviceServerInitialized(iMethodInstance)){
+                    MicroserviceServer microserviceServer = initMicroserviceServer(iMethodInstance);
+                    scanAndLoadClasses(microserviceServer, realClass, iMethodInstance);
                 }
             }
         }
         Field[] fields = realClass.getDeclaredFields();
-        for (Object iMethod : iTestClass.getInstances(false)) {
-            processFields(fields, iMethod);
+        for (Object iMethodInstance : iTestClass.getInstances(false)) {
+            processFields(fields, iMethodInstance);
         }
     }
 
@@ -449,12 +448,12 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     public void onAfterClass(ITestClass iTestClass) {
 
         MockInitialContextFactory.destroy();
-        for (Object iMethod : iTestClass.getInstances(false)) {
-            MicroserviceServer microserviceServer = microserviceServerMap.get(iMethod);
+        for (Object iMethodInstance : iTestClass.getInstances(false)) {
+            MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance);
             if (microserviceServer != null) {
                 microserviceServer.stop();
                 microserviceServer.destroy();
-                microserviceServerMap.remove(iMethod);
+                microserviceServerMap.remove(iMethodInstance);
             }
         }
     }
