@@ -705,6 +705,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test(dataProvider = "addApplicationDataProvider")
     public void testCreateApplication(Object serviceProvider, String tenantDomain, String username) throws
             IdentityApplicationManagementException {
+
         //delete existing application
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
